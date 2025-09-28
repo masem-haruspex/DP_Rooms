@@ -1,0 +1,5 @@
+Assumptions:
+No foreign key constraints between databases (as per your schema).
+User authentication is handled externally; the Rooms service receives user_id (UUID) from the auth service via API gateway or RabbitMQ.
+Guest users are allowed: they don’t need to exist in authentication.users, but for simplicity, we’ll still require a user_id (you can later allow null or use a special guest UUID if needed).
+Room codes are 12-char unique strings (e.g., "ABCD1234EFGH").
