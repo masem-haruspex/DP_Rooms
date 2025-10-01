@@ -1,8 +1,10 @@
 // src/main/java/com/mm_mk/Rooms/service/RoomService.java
 package com.mm_mk.Rooms.service;
 
+import com.mm_mk.Rooms.model.LocalUser;
 import com.mm_mk.Rooms.model.Room;
 import com.mm_mk.Rooms.model.RoomParticipant;
+import com.mm_mk.Rooms.repository.LocalUserRepository;
 import com.mm_mk.Rooms.repository.RoomRepository;
 import com.mm_mk.Rooms.repository.RoomParticipantRepository;
 import com.mm_mk.Rooms.response.RoomResponse;
@@ -21,6 +23,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
     private final RoomParticipantRepository participantRepository;
+    private final LocalUserRepository localUserRepository;
     private final RabbitTemplate rabbitTemplate;
 
     @Value("${rabbitmq.exchange.rooms}")
@@ -46,14 +49,22 @@ public class RoomService {
 
     public RoomService(RoomRepository roomRepository,
                        RoomParticipantRepository participantRepository,
+                       LocalUserRepository localUserRepository,
                        RabbitTemplate rabbitTemplate) {
         this.roomRepository = roomRepository;
         this.participantRepository = participantRepository;
+        this.localUserRepository = localUserRepository;
         this.rabbitTemplate = rabbitTemplate;
     }
 
+    /**
+     * Create a room
+     */
     @Transactional
     public RoomResponse createRoom(UUID ownerId, String name, Boolean isPrivate, Integer maxParticipants) {
+        LocalUser owner = localUserRepository.findById(ownerId)
+                .orElseThrow(() -> new RuntimeException("Owner not found in local_users"));
+
         UUID roomId = UUID.randomUUID();
         String code = generateRoomCode();
 
@@ -61,7 +72,7 @@ public class RoomService {
                 .id(roomId)
                 .code(code)
                 .name(name)
-                .ownerId(ownerId)
+                .owner(owner) // Updated: now using LocalUser entity
                 .isPrivate(isPrivate != null ? isPrivate : false)
                 .maxParticipants(maxParticipants != null ? maxParticipants : 2)
                 .createdAt(LocalDateTime.now())
@@ -75,23 +86,30 @@ public class RoomService {
                 room.getId(),
                 room.getCode(),
                 room.getName(),
-                room.getOwnerId(),
+                room.getOwner().getId(),
                 room.getIsPrivate(),
                 room.getMaxParticipants(),
                 room.getCreatedAt()
         );
     }
 
+    /**
+     * Join a user to a room
+     */
     @Transactional
     public JoinRoomResponse joinRoom(String roomCode, UUID userId) {
         Room room = roomRepository.findByCode(roomCode)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (participantRepository.existsByRoomIdAndUserId(room.getId(), userId)) {
+        LocalUser user = localUserRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found in local_users"));
+
+        // Updated: using Room and LocalUser directly
+        if (participantRepository.existsByRoomAndUser(room, user)) {
             throw new RuntimeException("User already in room");
         }
 
-        long participantCount = participantRepository.findByRoomId(room.getId()).size();
+        long participantCount = participantRepository.findByRoom(room).size();
         if (participantCount >= room.getMaxParticipants()) {
             throw new RuntimeException("Room is full");
         }
@@ -99,8 +117,8 @@ public class RoomService {
         UUID participantId = UUID.randomUUID();
         RoomParticipant participant = RoomParticipant.builder()
                 .id(participantId)
-                .roomId(room.getId())
-                .userId(userId)
+                .room(room)
+                .user(user)
                 .joinedAt(LocalDateTime.now())
                 .build();
 
@@ -109,41 +127,45 @@ public class RoomService {
         rabbitTemplate.convertAndSend(roomsExchange, userJoinedRoutingKey, participant);
 
         return new JoinRoomResponse(
-                participant.getRoomId(),
-                participant.getUserId(),
+                participant.getRoom().getId(),
+                participant.getUser().getId(),
                 participant.getJoinedAt()
         );
     }
 
+    /**
+     * Fetch a room by its join code
+     */
     public RoomResponse getRoomByCode(String code) {
         Room room = roomRepository.findByCode(code)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
+
         return new RoomResponse(
                 room.getId(),
                 room.getCode(),
                 room.getName(),
-                room.getOwnerId(),
+                room.getOwner().getId(),
                 room.getIsPrivate(),
                 room.getMaxParticipants(),
                 room.getCreatedAt()
         );
     }
 
-    private String generateRoomCode() {
-        return UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
-    }
-    // Room deleted
+    /**
+     * Delete a room
+     */
     @Transactional
     public void deleteRoom(UUID roomId, UUID ownerId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (!room.getOwnerId().equals(ownerId)) {
+        if (!room.getOwner().getId().equals(ownerId)) {
             throw new RuntimeException("Only owner can delete room");
         }
 
+        participantRepository.deleteByRoom(room); // Updated cleanup
+
         roomRepository.deleteById(roomId);
-        participantRepository.deleteByRoomId(roomId); // cleanup
 
         rabbitTemplate.convertAndSend(
                 roomsExchange,
@@ -152,30 +174,39 @@ public class RoomService {
         );
     }
 
+    /**
+     * Leave a room
+     */
     @Transactional
     public void leaveRoom(String roomCode, UUID userId) {
         Room room = roomRepository.findByCode(roomCode)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (!participantRepository.existsByRoomIdAndUserId(room.getId(), userId)) {
+        LocalUser user = localUserRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found in local_users"));
+
+        if (!participantRepository.existsByRoomAndUser(room, user)) {
             throw new RuntimeException("User not in room");
         }
 
-        participantRepository.deleteByRoomIdAndUserId(room.getId(), userId);
+        participantRepository.deleteByRoomAndUser(room, user);
 
         rabbitTemplate.convertAndSend(
                 roomsExchange,
                 userLeftRoutingKey,
-                Map.of("roomId", room.getId(), "userId", userId)
+                Map.of("roomId", room.getId(), "userId", user.getId())
         );
     }
 
+    /**
+     * Kick a user from a room
+     */
     @Transactional
     public void kickUser(String roomCode, UUID ownerId, UUID userIdToKick) {
         Room room = roomRepository.findByCode(roomCode)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (!room.getOwnerId().equals(ownerId)) {
+        if (!room.getOwner().getId().equals(ownerId)) {
             throw new RuntimeException("Only owner can kick");
         }
 
@@ -183,7 +214,10 @@ public class RoomService {
             throw new RuntimeException("Owner cannot kick themselves");
         }
 
-        participantRepository.deleteByRoomIdAndUserId(room.getId(), userIdToKick);
+        LocalUser userToKick = localUserRepository.findById(userIdToKick)
+                .orElseThrow(() -> new RuntimeException("User to kick not found"));
+
+        participantRepository.deleteByRoomAndUser(room, userToKick);
 
         rabbitTemplate.convertAndSend(
                 roomsExchange,
@@ -196,12 +230,15 @@ public class RoomService {
         );
     }
 
+    /**
+     * Mute a user in a room
+     */
     @Transactional
     public void muteUser(String roomCode, UUID ownerId, UUID userIdToMute) {
         Room room = roomRepository.findByCode(roomCode)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        if (!room.getOwnerId().equals(ownerId)) {
+        if (!room.getOwner().getId().equals(ownerId)) {
             throw new RuntimeException("Only owner can mute");
         }
 
@@ -214,5 +251,12 @@ public class RoomService {
                         "mutedBy", ownerId
                 )
         );
+    }
+
+    /**
+     * Utility method for generating a 12-character uppercase room code
+     */
+    private String generateRoomCode() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
     }
 }
