@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/service/RoomService.java
 package com.mm_mk.Rooms.service;
 
 import com.mm_mk.Rooms.model.LocalUser;

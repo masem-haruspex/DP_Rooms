@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/exception/GlobalExceptionHandler.java
 package com.mm_mk.Rooms.exception;
 
 import org.springframework.http.HttpStatus;

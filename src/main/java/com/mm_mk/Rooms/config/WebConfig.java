@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/config/WebConfig.java
 package com.mm_mk.Rooms.config;
 
 import org.springframework.context.annotation.Configuration;

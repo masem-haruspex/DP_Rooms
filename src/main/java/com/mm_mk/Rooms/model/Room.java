@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/model/Room.java
 package com.mm_mk.Rooms.model;
 
 import jakarta.persistence.*;

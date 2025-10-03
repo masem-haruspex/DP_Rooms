@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/controller/RoomController.java
 package com.mm_mk.Rooms.controller;
 
 import com.mm_mk.Rooms.request.*;
@@ -19,9 +18,6 @@ public class RoomController {
     @Autowired
     private RoomService roomService;
 
-    /**
-     * Create a new room with the given owner.
-     */
     @PostMapping
     public ResponseEntity<RoomResponse> createRoom(
             @RequestHeader("X-User-ID") UUID ownerId,
@@ -35,9 +31,7 @@ public class RoomController {
         return ResponseEntity.status(201).body(room);
     }
 
-    /**
-     * Join a room using its human-friendly code.
-     */
+
     @PostMapping("/{code}/join")
     public ResponseEntity<JoinRoomResponse> joinRoom(
             @PathVariable String code,
@@ -46,9 +40,7 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * Leave a room.
-     */
+
     @PostMapping("/{code}/leave")
     public ResponseEntity<Void> leaveRoom(
             @PathVariable String code,
@@ -57,9 +49,7 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Kick another user from the room. Only the owner can do this.
-     */
+
     @PostMapping("/{code}/kick")
     public ResponseEntity<Void> kickUser(
             @PathVariable String code,
@@ -69,9 +59,6 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Mute another user in the room. Only the owner can do this.
-     */
     @PostMapping("/{code}/mute")
     public ResponseEntity<Void> muteUser(
             @PathVariable String code,
@@ -81,9 +68,6 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Delete a room entirely.
-     */
     @DeleteMapping("/{roomId}")
     public ResponseEntity<Void> deleteRoom(
             @PathVariable UUID roomId,
@@ -92,9 +76,6 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Fetch room details by its human-friendly code.
-     */
     @GetMapping("/{code}")
     public ResponseEntity<RoomResponse> getRoom(@PathVariable String code) {
         RoomResponse room = roomService.getRoomByCode(code);

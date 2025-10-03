@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/config/RabbitMQConfig.java
 package com.mm_mk.Rooms.config;
 
 import org.springframework.amqp.core.Binding;

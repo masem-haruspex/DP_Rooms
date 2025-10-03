@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/request/CreateRoomRequest.java
 package com.mm_mk.Rooms.request;
 
 import jakarta.validation.constraints.*;

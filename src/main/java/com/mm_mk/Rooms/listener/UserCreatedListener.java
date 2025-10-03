@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/listener/UserCreatedListener.java
 package com.mm_mk.Rooms.listener;
 
 import com.mm_mk.Rooms.model.LocalUser;
