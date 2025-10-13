@@ -28,10 +28,7 @@ public class Room {
     @Size(max = 100, message = "Name must be under 100 characters")
     private String name;
 
-    /**
-     * Owner of the room
-     * This is a foreign key to local_users.id
-     */
+    /* This is a foreign key to local_users.id */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false,
             foreignKey = @ForeignKey(name = "fk_rooms_owner"))
@@ -39,6 +36,9 @@ public class Room {
 
     @Column(name = "is_private", nullable = false)
     private Boolean isPrivate = false;
+
+    @Column(name = "password", length = 255)
+    private String password;
 
     @Column(name = "max_participants", nullable = false)
     @Min(value = 2, message = "Minimum 2 participants")

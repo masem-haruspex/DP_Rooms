@@ -26,6 +26,7 @@ public class RoomController {
                 ownerId,
                 request.name(),
                 request.isPrivate(),
+                request.password(),
                 request.maxParticipants()
         );
         return ResponseEntity.status(201).body(room);
@@ -36,7 +37,7 @@ public class RoomController {
     public ResponseEntity<JoinRoomResponse> joinRoom(
             @PathVariable String code,
             @Valid @RequestBody JoinRoomRequest request) {
-        JoinRoomResponse response = roomService.joinRoom(code, request.userId());
+        JoinRoomResponse response = roomService.joinRoom(code, request.getUserIdAsUUID(), request.password());
         return ResponseEntity.ok(response);
     }
 

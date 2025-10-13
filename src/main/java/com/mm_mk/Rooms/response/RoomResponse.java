@@ -8,6 +8,7 @@ public record RoomResponse(
         String name,
         UUID ownerId,
         Boolean isPrivate,
+        String password,
         Integer maxParticipants,
         java.time.LocalDateTime createdAt
 ) {}

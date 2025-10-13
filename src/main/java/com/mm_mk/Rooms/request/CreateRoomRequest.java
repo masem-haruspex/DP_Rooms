@@ -9,6 +9,8 @@ public record CreateRoomRequest(
 
         Boolean isPrivate,
 
+        String password,
+
         @Min(value = 2, message = "Min 2 participants")
         @Max(value = 10, message = "Max 10 participants")
         Integer maxParticipants
