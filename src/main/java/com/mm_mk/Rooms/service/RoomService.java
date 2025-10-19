@@ -77,6 +77,15 @@ public class RoomService {
 
         room = roomRepository.save(room);
 
+        RoomParticipant ownerParticipant = RoomParticipant.builder()
+                .id(UUID.randomUUID())
+                .room(room)
+                .user(owner)
+                .joinedAt(LocalDateTime.now())
+                .build();
+        participantRepository.save(ownerParticipant);
+
+
         rabbitTemplate.convertAndSend(roomsExchange, roomCreatedRoutingKey,
                 Map.of(
                         "id", room.getId().toString(),
