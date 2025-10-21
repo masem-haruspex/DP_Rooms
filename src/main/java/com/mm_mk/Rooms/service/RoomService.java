@@ -6,6 +6,7 @@ import com.mm_mk.Rooms.model.RoomParticipant;
 import com.mm_mk.Rooms.repository.LocalUserRepository;
 import com.mm_mk.Rooms.repository.RoomRepository;
 import com.mm_mk.Rooms.repository.RoomParticipantRepository;
+import com.mm_mk.Rooms.response.ParticipantResponse;
 import com.mm_mk.Rooms.response.RoomResponse;
 import com.mm_mk.Rooms.response.JoinRoomResponse;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -15,7 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class RoomService {
@@ -279,6 +282,24 @@ public class RoomService {
                 room.getMaxParticipants(),
                 room.getCreatedAt()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParticipantResponse> getRoomParticipants(String roomCode) {
+        Room room = roomRepository.findByCode(roomCode)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        List<RoomParticipant> participants = participantRepository.findByRoom(room);
+
+        return participants.stream()
+                .map(participant -> new ParticipantResponse(
+                        participant.getId(),
+                        participant.getUser().getUsername(),
+                        participant.getUser().getId(),
+                        participant.getUser().getPreferredKeyboard(),
+                        participant.getJoinedAt()
+                ))
+                .collect(Collectors.toList());
     }
 
     private String generateRoomCode() {

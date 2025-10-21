@@ -2,6 +2,7 @@ package com.mm_mk.Rooms.controller;
 
 import com.mm_mk.Rooms.request.*;
 import com.mm_mk.Rooms.response.JoinRoomResponse;
+import com.mm_mk.Rooms.response.ParticipantResponse;
 import com.mm_mk.Rooms.response.RoomResponse;
 import com.mm_mk.Rooms.service.RoomService;
 import jakarta.validation.Valid;
@@ -10,76 +11,83 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/rooms")
 public class RoomController {
 
-    @Autowired
-    private RoomService roomService;
+	@Autowired
+	private RoomService roomService;
 
-    @PostMapping
-    public ResponseEntity<RoomResponse> createRoom(
-            @RequestHeader("X-User-ID") UUID ownerId,
-            @Valid @RequestBody CreateRoomRequest request) {
-        RoomResponse room = roomService.createRoom(
-                ownerId,
-                request.name(),
-                request.isPrivate(),
-                request.password(),
-                request.maxParticipants()
-        );
-        return ResponseEntity.status(201).body(room);
-    }
-
-
-    @PostMapping("/{code}/join")
-    public ResponseEntity<JoinRoomResponse> joinRoom(
-            @PathVariable String code,
-            @Valid @RequestBody JoinRoomRequest request) {
-        JoinRoomResponse response = roomService.joinRoom(code, request.getUserIdAsUUID(), request.password());
-        return ResponseEntity.ok(response);
-    }
+	@PostMapping
+	public ResponseEntity<RoomResponse> createRoom(
+			@RequestHeader("X-User-ID") UUID ownerId,
+			@Valid @RequestBody CreateRoomRequest request) {
+			RoomResponse room = roomService.createRoom(
+					ownerId,
+					request.name(),
+					request.isPrivate(),
+					request.password(),
+					request.maxParticipants()
+					);
+			return ResponseEntity.status(201).body(room);
+			}
 
 
-    @PostMapping("/{code}/leave")
-    public ResponseEntity<Void> leaveRoom(
-            @PathVariable String code,
-            @RequestHeader("X-User-ID") UUID userId) {
-        roomService.leaveRoom(code, userId);
-        return ResponseEntity.noContent().build();
-    }
+	@PostMapping("/{code}/join")
+	public ResponseEntity<JoinRoomResponse> joinRoom(
+			@PathVariable String code,
+			@Valid @RequestBody JoinRoomRequest request) {
+			JoinRoomResponse response = roomService.joinRoom(code, request.getUserIdAsUUID(), request.password());
+			return ResponseEntity.ok(response);
+			}
 
 
-    @PostMapping("/{code}/kick")
-    public ResponseEntity<Void> kickUser(
-            @PathVariable String code,
-            @RequestHeader("X-User-ID") UUID ownerId,
-            @Valid @RequestBody KickUserRequest request) {
-        roomService.kickUser(code, ownerId, request.userId());
-        return ResponseEntity.noContent().build();
-    }
+	@PostMapping("/{code}/leave")
+	public ResponseEntity<Void> leaveRoom(
+			@PathVariable String code,
+			@RequestHeader("X-User-ID") UUID userId) {
+			roomService.leaveRoom(code, userId);
+			return ResponseEntity.noContent().build();
+			}
 
-    @PostMapping("/{code}/mute")
-    public ResponseEntity<Void> muteUser(
-            @PathVariable String code,
-            @RequestHeader("X-User-ID") UUID ownerId,
-            @Valid @RequestBody MuteUserRequest request) {
-        roomService.muteUser(code, ownerId, request.userId());
-        return ResponseEntity.noContent().build();
-    }
 
-    @DeleteMapping("/{roomId}")
-    public ResponseEntity<Void> deleteRoom(
-            @PathVariable UUID roomId,
-            @RequestHeader("X-User-ID") UUID ownerId) {
-        roomService.deleteRoom(roomId, ownerId);
-        return ResponseEntity.noContent().build();
-    }
+	@PostMapping("/{code}/kick")
+	public ResponseEntity<Void> kickUser(
+			@PathVariable String code,
+			@RequestHeader("X-User-ID") UUID ownerId,
+			@Valid @RequestBody KickUserRequest request) {
+			roomService.kickUser(code, ownerId, request.userId());
+			return ResponseEntity.noContent().build();
+			}
 
-    @GetMapping("/{code}")
-    public ResponseEntity<RoomResponse> getRoom(@PathVariable String code) {
-        RoomResponse room = roomService.getRoomByCode(code);
-        return ResponseEntity.ok(room);
-    }
+	@PostMapping("/{code}/mute")
+	public ResponseEntity<Void> muteUser(
+			@PathVariable String code,
+			@RequestHeader("X-User-ID") UUID ownerId,
+			@Valid @RequestBody MuteUserRequest request) {
+			roomService.muteUser(code, ownerId, request.userId());
+			return ResponseEntity.noContent().build();
+			}
+
+	@DeleteMapping("/{roomId}")
+	public ResponseEntity<Void> deleteRoom(
+			@PathVariable UUID roomId,
+			@RequestHeader("X-User-ID") UUID ownerId) {
+			roomService.deleteRoom(roomId, ownerId);
+			return ResponseEntity.noContent().build();
+			}
+
+	@GetMapping("/{code}")
+	public ResponseEntity<RoomResponse> getRoom(@PathVariable String code) {
+		RoomResponse room = roomService.getRoomByCode(code);
+		return ResponseEntity.ok(room);
+	}
+
+	@GetMapping("/{code}/participants")
+	public ResponseEntity<List<ParticipantResponse>> getRoomParticipants(@PathVariable String code) {
+		List<ParticipantResponse> participants = roomService.getRoomParticipants(code);
+		return ResponseEntity.ok(participants);
+	}
 }
