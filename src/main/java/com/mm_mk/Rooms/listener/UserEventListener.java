@@ -1,5 +1,6 @@
 package com.mm_mk.Rooms.listener;
 
+import com.mm_mk.Rooms.event.UserUpdatedEvent;
 import com.mm_mk.Rooms.model.LocalUser;
 import com.mm_mk.Rooms.repository.LocalUserRepository;
 import com.mm_mk.Rooms.event.UserCreatedEvent;
@@ -10,13 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-public class UserCreatedListener {
+public class UserEventListener {
 
     private final LocalUserRepository localUserRepository;
 
-    @RabbitListener(queues = "rooms.user.queue")
+    @RabbitListener(queues = "rooms.user.created.queue")
     @Transactional
-    public void handleUserCreated(UserCreatedEvent event) {
+    public void handleUserEvent(UserCreatedEvent event) {
         // Only insert if not already exists
         if (!localUserRepository.existsById(event.id())) {
             LocalUser localUser = LocalUser.builder()
@@ -26,5 +27,15 @@ public class UserCreatedListener {
 
             localUserRepository.save(localUser);
         }
+    }
+
+    @RabbitListener(queues = "rooms.user.updated.queue")
+    @Transactional
+    public void handleUserUpdated(UserUpdatedEvent event) {
+        localUserRepository.findById(event.id()).ifPresent(existingUser -> {
+            existingUser.setUsername(event.username());
+            existingUser.setPreferredKeyboard(event.preferredKeyboard());
+            localUserRepository.save(existingUser);
+        });
     }
 }
