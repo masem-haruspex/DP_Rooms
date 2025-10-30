@@ -23,15 +23,8 @@ public class Room {
     @Pattern(regexp = "^[A-Z0-9]{12}$", message = "Code must be 12 uppercase alphanumeric characters")
     private String code;
 
-    @Column(name = "name", nullable = false, length = 100)
-    @NotBlank(message = "Name is required")
-    @Size(max = 100, message = "Name must be under 100 characters")
-    private String name;
-
-    /* This is a foreign key to local_users.id */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "owner_id", nullable = false,
-            foreignKey = @ForeignKey(name = "fk_rooms_owner"))
+    @JoinColumn(name = "owner_id", nullable = false, foreignKey = @ForeignKey(name = "fk_rooms_owner"))
     private LocalUser owner;
 
     @Column(name = "is_private", nullable = false)

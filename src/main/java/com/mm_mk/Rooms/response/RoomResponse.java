@@ -5,7 +5,6 @@ import java.util.UUID;
 public record RoomResponse(
         UUID id,
         String code,
-        String name,
         UUID ownerId,
         Boolean isPrivate,
         String password,
