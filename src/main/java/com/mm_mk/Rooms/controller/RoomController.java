@@ -35,9 +35,13 @@ public class RoomController {
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "201", description = "Room created successfully")
     @ApiResponse(responseCode = "400", description = "Invalid input data")
-    public ResponseEntity<RoomResponse> createRoom(@RequestHeader("X-User-ID") UUID ownerId, @Valid @RequestBody CreateRoomRequest request) {
+    public ResponseEntity<RoomResponse> createRoom(
+        @RequestHeader("X-User-ID") UUID ownerId,
+        @Valid @RequestBody CreateRoomRequest request) {
+
         long startTime = System.currentTimeMillis();
-        logger.info("CREATE_ROOM request - ownerId: {},isPrivate: {}, maxParticipants: {}", ownerId, request.isPrivate(), request.maxParticipants());
+        logger.info("CREATE_ROOM request - ownerId: {},isPrivate: {}, maxParticipants: {}",
+            ownerId, request.isPrivate(), request.maxParticipants());
 
         try {
             RoomResponse room = roomService.createRoom(
@@ -47,7 +51,8 @@ public class RoomController {
                     request.maxParticipants()
             );
 
-            logger.info("CREATE_ROOM success - roomId: {}, code: {}, ownerId: {}", room.id(), room.code(), ownerId);
+            logger.info("CREATE_ROOM success - roomId: {}, code: {}, ownerId: {}",
+                room.id(), room.code(), ownerId);
             return ResponseEntity.status(201).body(room);
         } finally {
             long duration = System.currentTimeMillis() - startTime;
@@ -62,13 +67,21 @@ public class RoomController {
     @ApiResponse(responseCode = "200", description = "Successfully joined room")
     @ApiResponse(responseCode = "400", description = "Invalid room code or password")
     @ApiResponse(responseCode = "403", description = "Room is full or access denied")
-    public ResponseEntity<JoinRoomResponse> joinRoom(@PathVariable String code, @Valid @RequestBody JoinRoomRequest request) {
+    public ResponseEntity<JoinRoomResponse> joinRoom(
+        @PathVariable String code,
+        @Valid @RequestBody JoinRoomRequest request) {
+
         long startTime = System.currentTimeMillis();
         logger.info("JOIN_ROOM request - roomCode: {}, userId: {}", code, request.userId());
 
         try {
-            JoinRoomResponse response = roomService.joinRoom(code, request.getUserIdAsUUID(), request.password());
-            logger.info("JOIN_ROOM success - roomCode: {}, userId: {}, roomId: {}", code, request.userId(), response.roomId());
+            JoinRoomResponse response = roomService.joinRoom(
+                code,
+                request.getUserIdAsUUID(),
+                request.password()
+            );
+            logger.info("JOIN_ROOM success - roomCode: {}, userId: {}, roomId: {}",
+                code, request.userId(), response.roomId());
             return ResponseEntity.ok(response);
         } finally {
             long duration = System.currentTimeMillis() - startTime;
@@ -82,7 +95,10 @@ public class RoomController {
     @Operation(summary = "Leave a room", description = "Leave a room you're currently participating in")
     @ApiResponse(responseCode = "204", description = "Successfully left room")
     @ApiResponse(responseCode = "404", description = "Room or user not found")
-    public ResponseEntity<Void> leaveRoom(@PathVariable String code, @RequestHeader("X-User-ID") UUID userId) {
+    public ResponseEntity<Void> leaveRoom(
+        @PathVariable String code,
+        @RequestHeader("X-User-ID") UUID userId) {
+
         long startTime = System.currentTimeMillis();
         logger.info("LEAVE_ROOM request - roomCode: {}, userId: {}", code, userId);
 
@@ -104,13 +120,19 @@ public class RoomController {
     @ApiResponse(responseCode = "204", description = "User kicked successfully")
     @ApiResponse(responseCode = "403", description = "Only room owner can kick users")
     @ApiResponse(responseCode = "404", description = "Room or user not found")
-    public ResponseEntity<Void> kickUser(@PathVariable String code, @RequestHeader("X-User-ID") UUID ownerId, @Valid @RequestBody KickUserRequest request) {
+    public ResponseEntity<Void> kickUser(
+        @PathVariable String code,
+        @RequestHeader("X-User-ID") UUID ownerId,
+        @Valid @RequestBody KickUserRequest request) {
+
         long startTime = System.currentTimeMillis();
-        logger.info("KICK_USER request - roomCode: {}, ownerId: {}, targetUserId: {}", code, ownerId, request.userId());
+        logger.info("KICK_USER request - roomCode: {}, ownerId: {}, targetUserId: {}",
+            code, ownerId, request.userId());
 
         try {
             roomService.kickUser(code, ownerId, request.userId());
-            logger.info("KICK_USER success - roomCode: {}, ownerId: {}, targetUserId: {}", code, ownerId, request.userId());
+            logger.info("KICK_USER success - roomCode: {}, ownerId: {}, targetUserId: {}",
+                code, ownerId, request.userId());
             return ResponseEntity.noContent().build();
         } finally {
             long duration = System.currentTimeMillis() - startTime;
@@ -125,7 +147,10 @@ public class RoomController {
     @SecurityRequirement(name = "bearerAuth")
     @ApiResponse(responseCode = "204", description = "Room deleted successfully")
     @ApiResponse(responseCode = "403", description = "Only room owner can delete room")
-    public ResponseEntity<Void> deleteRoom(@PathVariable UUID roomId, @RequestHeader("X-User-ID") UUID ownerId) {
+    public ResponseEntity<Void> deleteRoom(
+        @PathVariable UUID roomId,
+        @RequestHeader("X-User-ID") UUID ownerId) {
+
         long startTime = System.currentTimeMillis();
         logger.info("DELETE_ROOM request - roomId: {}, ownerId: {}", roomId, ownerId);
 
@@ -171,7 +196,8 @@ public class RoomController {
 
         try {
             List<ParticipantResponse> participants = roomService.getRoomParticipants(code);
-            logger.debug("GET_PARTICIPANTS success - roomCode: {}, participantCount: {}", code, participants.size());
+            logger.debug("GET_PARTICIPANTS success - roomCode: {}, participantCount: {}",
+                code, participants.size());
             return ResponseEntity.ok(participants);
         } finally {
             long duration = System.currentTimeMillis() - startTime;

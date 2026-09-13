@@ -1,4 +1,3 @@
-// src/main/java/com/mm_mk/Rooms/RoomsApplication.java
 package com.mm_mk.Rooms;
 
 import org.springframework.boot.SpringApplication;

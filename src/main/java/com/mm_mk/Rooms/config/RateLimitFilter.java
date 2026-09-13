@@ -82,7 +82,7 @@ public class RateLimitFilter implements Filter {
         for (Map.Entry<String, RateLimitProperties.EndpointLimit> entry : properties.getEndpoints().entrySet()) {
             String pattern = entry.getKey();
             if (matchesPattern(pattern, path)) {
-                int score = pattern.length(); // prefer the most specific (longest) pattern
+                int score = pattern.length(); 
                 if (score > bestScore) {
                     bestMatch = entry.getValue();
                     bestScore = score;
@@ -95,11 +95,10 @@ public class RateLimitFilter implements Filter {
     private boolean matchesPattern(String pattern, String path) {
         if (pattern == null || path == null) return false;
 
-        // Convert wildcards to regex
         String regex = pattern
                 .replace(".", "\\.")
-                .replace("/**", "(/.*)?") // matches 0 or more subpaths
-                .replace("/*", "/[^/]+"); // matches exactly one path segment
+                .replace("/**", "(/.*)?") 
+                .replace("/*", "/[^/]+"); 
 
         return Pattern.matches("^" + regex + "$", path);
     }

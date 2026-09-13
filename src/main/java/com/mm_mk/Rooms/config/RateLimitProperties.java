@@ -41,9 +41,8 @@ public class RateLimitProperties {
         EndpointLimit listRooms = new EndpointLimit();
         listRooms.setRequests(10);
         listRooms.setWindow(Duration.ofMinutes(1));
-        endpoints.put("/api/rooms", listRooms);           // POST /api/rooms
+        endpoints.put("/api/rooms", listRooms);           
 
-        // Guest endpoints (join/leave/room info/participants) — stricter for join
         EndpointLimit join = new EndpointLimit();
         join.setRequests(10);
         join.setWindow(Duration.ofMinutes(1));
@@ -57,7 +56,7 @@ public class RateLimitProperties {
         EndpointLimit roomInfo = new EndpointLimit();
         roomInfo.setRequests(20);
         roomInfo.setWindow(Duration.ofMinutes(1));
-        endpoints.put("/api/rooms/*", roomInfo);          // will match /api/rooms/{code} and similar prefixes
+        endpoints.put("/api/rooms/*", roomInfo);          
 
         EndpointLimit participants = new EndpointLimit();
         participants.setRequests(20);
