@@ -1,0 +1,78 @@
+# ---------------------------------------------------------------------------
+# Template configuration. Copy to 'application.properties' and fill in values.
+#   cp src/main/resources/application.properties.example \
+#      src/main/resources/application.properties
+# The real application.properties is gitignored and must never be committed.
+# Secrets are supplied via environment variables - see ${...} placeholders.
+# ---------------------------------------------------------------------------
+
+spring.application.name=Rooms
+server.port=8082
+server.shutdown=graceful
+spring.profiles.active=local
+spring.lifecycle.timeout-per-shutdown-phase=30s
+frontend.urls[0]=${FRONTEND_URL_1:}
+frontend.urls[1]=${FRONTEND_URL_2:}
+frontend.urls[2]=${FRONTEND_URL_3:}
+frontend.urls[3]=${FRONTEND_URL_4:}
+frontend.urls[4]=${FRONTEND_URL_5:}
+
+server.address=127.0.0.1
+
+# PostgreSQL
+spring.datasource.url=jdbc:postgresql://localhost:5432/dp_rooms
+spring.datasource.username=${DATABASE_USERNAME:masem}
+spring.datasource.password=${DATABASE_PASSWORD:}
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.datasource.hikari.minimum-idle=2
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.idle-timeout=300000
+spring.datasource.hikari.pool-name=HikariPool-Rooms
+
+# JDBC
+spring.data.jdbc.repositories.enabled=false
+
+# Security
+spring.security.oauth2.resourceserver.jwt.issuer-uri=${OAUTH2_ISSUER:http://localhost:8080}
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=${OAUTH2_ISSUER:http://localhost:8080}/oauth2/jwks
+
+# Logging
+logging.file.name=logs/rooms.log
+logging.logback.rollingpolicy.max-file-size=10MB
+logging.logback.rollingpolicy.max-history=10
+logging.logback.rollingpolicy.clean-history-on-start=false
+logging.pattern.console=%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%X{correlationId}]){magenta} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID:- }){cyan} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}
+logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{correlationId}] %-5level ${PID:- } --- [%15.15t] %-40.40logger{39} : %msg%n
+
+# RabbitMQ
+spring.rabbitmq.host=localhost
+spring.rabbitmq.port=5672
+spring.rabbitmq.username=${RABBITMQ_USERNAME:guest}
+spring.rabbitmq.password=${RABBITMQ_PASSWORD:guest}
+
+rabbitmq.exchange.rooms=rooms.exchange
+rabbitmq.routingkey.room.created=room.created
+rabbitmq.routingkey.user.joined=user.joined
+rabbitmq.routingkey.room.deleted=room.deleted
+rabbitmq.routingkey.user.left=user.left
+rabbitmq.routingkey.user.kicked=user.kicked
+rabbitmq.routingkey.user.muted=user.muted
+
+app.rabbitmq.queue=rooms.user.queue
+
+# Actuator
+management.server.port=9002
+management.server.address=127.0.0.1
+management.endpoints.web.exposure.include=health,info,metrics,loggers
+management.endpoint.health.show-details=always
+management.endpoint.loggers.enabled=true
+
+# OpenAPI
+springdoc.api-docs.enabled=true
+springdoc.swagger-ui.enabled=true
+springdoc.swagger-ui.path=/swagger-ui.html
